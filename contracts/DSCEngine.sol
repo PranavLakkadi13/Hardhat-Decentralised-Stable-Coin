@@ -94,12 +94,16 @@ contract DSCEngine is ReentrancyGuard {
         uint256 length = tokenAddresses.length;
         
         // The price feed address will be w.r.t USD 
-        for (uint i = 0; i < length; i++) {
+        for (uint i = 0; i < length; ) {
             if (tokenAddresses[i] == address(0) || pricefeedAddresses[i] == address(0)) {
            revert DSCEngine__TokenAddressZero();
         }
             s_priceFeeds[tokenAddresses[i]] = pricefeedAddresses[i];
             s_CollateralTokens.push(tokenAddresses[i]);
+
+            unchecked {
+                ++i;
+            }
         }
 
         if (DSCAddress == address(0)) {
@@ -363,11 +367,12 @@ contract DSCEngine is ReentrancyGuard {
         // loop through each collateral token, get the amount they have deposited and map it 
         // to the price to get the USD value 
         uint256 length = s_CollateralTokens.length;
-        for (uint i = 0; i < length; i++) {
+        for (uint i = 0; i < length; ) {
             address token = s_CollateralTokens[i];
             uint256 amount = s_CollateralDeposited[user][token];
             unchecked {
                 totalCollateralValueUSD += getUSDValue(token, amount);
+                ++i;
             }
         }
     }

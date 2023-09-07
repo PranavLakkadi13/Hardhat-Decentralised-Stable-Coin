@@ -23,6 +23,18 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     log("----------------------------------------------");
     log("Mockv3Aggregator Deployed!!!!!!!");
     log("-----------------------------------------------");
+
+    log("Local network detected!!!!");
+    log("Deploying mocks ---> ");
+    const MockV3Aggregator2 = await deploy("MockV3Aggregator", {
+      from: deployer,
+      // in this contract we can choose our inital price since it is a mock
+      args: [8, 20000_00000000], // --> constructor args
+      log: true,
+    });
+    log("----------------------------------------------");
+    log("Mockv3Aggregator Deployed!!!!!!!");
+    log("-----------------------------------------------");
     
     const totalsupply = ethers.utils.parseEther("100000");
 
@@ -35,7 +47,19 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
       log: true,
     });
     log("----------------------------------------------");
-    log("ERC20 Mocks Deployed!!!!!!!");
+    log("ETHToken Mocks Deployed!!!!!!!");
+    log("-----------------------------------------------");
+
+    log("Local network detected!!!!");
+    log("Deploying mocks ---> ");
+    await deploy("BTCToken", {
+      from: deployer,
+      // in this contract we can choose our inital price since it is a mock
+      args: [totalsupply], // --> constructor args
+      log: true,
+    });
+    log("----------------------------------------------");
+    log("BTCToken Mocks Deployed!!!!!!!");
     log("-----------------------------------------------");
   }
 };
