@@ -22,8 +22,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   log("Deploying mocks ---> ");
   const DSCEngine = await deploy("DSCEngine", {
     from: deployer,
-    // in this contract we can choose our inital price since it is a mock
-    args: args, // --> constructor args
+    args: args, 
     log: true,
   });
 
@@ -36,9 +35,6 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   log("deploying the contract on the test network!!!!!");
   log("---------------------------------------------------");
 
-  log("----------------------------------------------");
-  log("DecentralisedStableCoin Deployed!!!!!!!");
-  log("-----------------------------------------------");
   log("----------------------------------------------");
   log("DSCEngine Deployed!!!!!!!");
   log("-----------------------------------------------");
