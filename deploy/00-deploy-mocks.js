@@ -1,5 +1,5 @@
 const { networkConfig } = require("../helper-hardhat-config");
-const { network,ethers } = require("hardhat");
+const { network, ethers } = require("hardhat");
 const {
   developmentChain,
   initialAnswer,
@@ -21,7 +21,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
       log: true,
     });
     log("----------------------------------------------");
-    log("Mockv3Aggregator Deployed!!!!!!!");
+    log("Mockv3Aggregator -- ETH Price Feed  Deployed!!!!!!!");
     log("-----------------------------------------------");
 
     log("Local network detected!!!!");
@@ -32,10 +32,11 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
       args: [8, 20000_00000000], // --> constructor args
       log: true,
     });
+    console.log(MockV3Aggregator2.address);
     log("----------------------------------------------");
-    log("Mockv3Aggregator Deployed!!!!!!!");
+    log("Mockv3Aggregator2 -- BTC price Feed Deployed!!!!!!!");
     log("-----------------------------------------------");
-    
+
     const totalsupply = ethers.utils.parseEther("100000");
 
     log("Local network detected!!!!");

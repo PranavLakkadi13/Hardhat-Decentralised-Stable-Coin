@@ -2,6 +2,7 @@ const { networkConfig } = require("../helper-hardhat-config");
 const { network, ethers } = require("hardhat");
 const { developmentChain } = require("../helper-hardhat-config");
 const { verify } = require("../utils/verify");
+// const { address } = require("./00-deploy-mocks");
 
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
@@ -11,10 +12,16 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
   const mockV3Aggregator = await deployments.get("MockV3Aggregator");
   const mockERC20 = await deployments.get("ETHToken");
+  const mockERC202 = await deployments.get("BTCToken");
   const DSC = await deployments.get("DecentralisedStableCoin");
+  const mockV3Aggregator2 = await ethers.getContractAt(
+    "MockV3Aggregator",
+    "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512",
+    deployer
+  );
 
-  const priceFeedAddress = [mockV3Aggregator.address, mockV3Aggregator.address];
-  const tokencontracts = [mockERC20.address, mockERC20.address];
+  const priceFeedAddress = [mockV3Aggregator.address, mockV3Aggregator2.address];
+  const tokencontracts = [mockERC20.address, mockERC202.address];
 
   const args = [tokencontracts, priceFeedAddress, DSC.address];
 
