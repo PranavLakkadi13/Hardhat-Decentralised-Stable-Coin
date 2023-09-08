@@ -21,9 +21,12 @@ const decimals = 8;
 
 const initialAnswer = 2000_00000000;
 
+const initialAnswerBTC = 30000_00000000;
+
 module.exports = {
   networkConfig,
   developmentChain,
   decimals,
   initialAnswer,
+  initialAnswerBTC,
 };

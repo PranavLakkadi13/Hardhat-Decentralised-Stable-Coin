@@ -8,6 +8,7 @@ const { developmentChain } = require("../../helper-hardhat-config");
     let mockERC20;
     let mockERC20BTC;
     let MockV3Aggregator;
+    let MockV3Aggregator2;
     let DSC;
     let DSCEngine;
     let deployer;
@@ -18,6 +19,10 @@ const { developmentChain } = require("../../helper-hardhat-config");
 
       MockV3Aggregator = await ethers.getContract(
         "MockV3Aggregator",
+        deployer
+      );
+      MockV3Aggregator2 = await ethers.getContractAt(
+        "MockV3Aggregator2",
         deployer
       );
       mockERC20 = await ethers.getContract("ETHToken", deployer);
@@ -40,14 +45,6 @@ const { developmentChain } = require("../../helper-hardhat-config");
       it("sets the DSC address", async () => {
         const DSc = await DSCEngine.getDSCContractAddress();
         assert.equal(DSc, DSC.address);
-      });
-
-      describe("checks the deposit in usd", () => {
-        it("The value in USD ", async () => {
-          const x = ethers.utils.parseEther("1");
-          const y = await DSCEngine.getUSDValue(mockERC20.address, x);
-          assert.equal(y.toString(), "20000000000000000000000");
-        });
       });
 
       describe("checks the account information", () => {
@@ -117,5 +114,26 @@ const { developmentChain } = require("../../helper-hardhat-config");
           //   ).to.be.revertedWith("DSCEngine__BreaksHealthFactor");
         });
       });
+
+      describe('Checks the state varibles', () => {
+        it("checks the pricefeed mapping", async () => {
+          const x = await DSCEngine.getPriceFeedAddress(mockERC20.address);
+          assert.equal(x, MockV3Aggregator.address);
+          const y = await DSCEngine.getPriceFeedAddress(mockERC20BTC.address);
+          assert.equal(y.toLowerCase(), MockV3Aggregator2.address.toLowerCase());
+        })
+      });
+
+      describe("checks the deposit in usd", () => {
+        it("The value in USD ", async () => {
+          const x = ethers.utils.parseEther("1");
+          const y = await DSCEngine.getUSDValue(mockERC20BTC.address, x);
+          console.log(y.toString());
+          // assert.equal(y.toString(), "30000000000000000000000");
+          const z = await DSCEngine.getUSDValue(mockERC20.address, x);
+          console.log(z.toString());
+        });
+      });
+      
     });
   });

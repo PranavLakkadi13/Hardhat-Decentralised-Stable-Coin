@@ -4,6 +4,7 @@ const {
   developmentChain,
   initialAnswer,
   decimals,
+  initialAnswerBTC,
 } = require("../helper-hardhat-config");
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
@@ -21,19 +22,20 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
       log: true,
     });
     log("----------------------------------------------");
+    log(`${decimals} and the answer ${initialAnswer}`);
     log("Mockv3Aggregator -- ETH Price Feed  Deployed!!!!!!!");
     log("-----------------------------------------------");
 
     log("Local network detected!!!!");
     log("Deploying mocks ---> ");
-    const MockV3Aggregator2 = await deploy("MockV3Aggregator", {
+    await deploy("MockV3Aggregator2", {
       from: deployer,
       // in this contract we can choose our inital price since it is a mock
-      args: [8, 20000_00000000], // --> constructor args
+      args: [decimals, initialAnswerBTC], // --> constructor args
       log: true,
     });
-    console.log(MockV3Aggregator2.address);
     log("----------------------------------------------");
+    log(`${decimals} and the answer ${initialAnswerBTC}`);
     log("Mockv3Aggregator2 -- BTC price Feed Deployed!!!!!!!");
     log("-----------------------------------------------");
 

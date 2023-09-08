@@ -14,11 +14,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   const mockERC20 = await deployments.get("ETHToken");
   const mockERC202 = await deployments.get("BTCToken");
   const DSC = await deployments.get("DecentralisedStableCoin");
-  const mockV3Aggregator2 = await ethers.getContractAt(
-    "MockV3Aggregator",
-    "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512",
-    deployer
-  );
+  const mockV3Aggregator2 = await deployments.get("MockV3Aggregator2",deployer);
 
   const priceFeedAddress = [mockV3Aggregator.address, mockV3Aggregator2.address];
   const tokencontracts = [mockERC20.address, mockERC202.address];
