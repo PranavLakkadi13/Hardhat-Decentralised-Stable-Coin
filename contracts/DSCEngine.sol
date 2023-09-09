@@ -258,9 +258,6 @@ contract DSCEngine is ReentrancyGuard {
         _RevertIfHealthFactorIsBroken(msg.sender);
     }
 
-    function getHealthFactor() external {}
-
-
     ////////////////////////////////////////////////
     //   Private and Internal View Functions   /////
     ////////////////////////////////////////////////
@@ -429,11 +426,11 @@ contract DSCEngine is ReentrancyGuard {
         return s_CollateralDeposited[user][token];
     }
 
-    function getDSCMint(address user) public view returns (uint256) {
-        if (user == address(0)) {
+    function getDSCMint(address token) public view returns (uint256) {
+        if (token == address(0)) {
             revert DSCEngine__TokenAddressZero();
         }
-        return s_DSCMinted[user];
+        return s_DSCMinted[token];
     }
 
     function getCollateralTokens(uint256 index) public view returns (address) {
@@ -445,5 +442,9 @@ contract DSCEngine is ReentrancyGuard {
 
     function getDSCContractAddress() public view returns (DecentralisedStableCoin) {
         return i_DSC;
+    }
+
+    function getHealthFactor(address user) public view returns (uint256) {
+        return _HealthFactor(user);
     }
 }
