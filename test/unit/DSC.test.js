@@ -122,11 +122,6 @@ const { developmentChain } = require("../../helper-hardhat-config");
     });
 
     describe('DepositAndMintDSC function', () => {
-      beforeEach(async () => {
-        const x = ethers.utils.parseEther("10")
-        await mockERC20.approve(DSCEngine.address, x);
-        await DSCEngine.depositCollateral(mockERC20.address, x);
-      })
       it('fails if the amounts are 0', async () => {
         await expect(
           DSCEngine.depositCollateralAndMintDSC(
@@ -143,6 +138,7 @@ const { developmentChain } = require("../../helper-hardhat-config");
           )
         ).to.be.revertedWith("DSCEngine__NeedsMoreThanZero");
       });
+      
       it("Reverts if the wrong address is entered", async () => {
         // Here we get morethanZero error first bcoz morethanzero modifier is checked before the address chcek
         await expect(
@@ -160,7 +156,14 @@ const { developmentChain } = require("../../helper-hardhat-config");
           )
         ).to.be.revertedWith("DSCEngine__TokenAddressZero");
       });
+      
       it("deposits and mints DSC", async () => {
+        const x = ethers.utils.parseEther("10");
+        await mockERC20.approve(DSCEngine.address, x);
+        await DSCEngine.depositCollateral(
+          mockERC20.address,
+          ethers.utils.parseEther("10")
+        );
         const y = await DSCEngine.getUSDValue(
           mockERC20.address,
           ethers.utils.parseEther("0.00000001")
@@ -173,8 +176,8 @@ const { developmentChain } = require("../../helper-hardhat-config");
           ethers.utils.parseEther("10"),
           ethers.utils.parseEther("0.00000001")
         );
-        const x = await DSC.totalSupply();
-        console.log(x.toString())
+        const a = await DSC.totalSupply();
+        console.log(a.toString())
       })
     })
     
