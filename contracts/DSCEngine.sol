@@ -209,11 +209,14 @@ contract DSCEngine is ReentrancyGuard {
      */
     function burnDSC(uint256 amount) public moreThanZero(amount){
         _burnDSC(amount, msg.sender, msg.sender);
-        _RevertIfHealthFactorIsBroken(msg.sender); // not sure if this is needed
+        
+        // Not sure if the below statement is needed 
+        // _RevertIfHealthFactorIsBroken(msg.sender); 
+        // The above statement has been removed since it doenst allow the user to partially burn tokens
     }
 
-    // if we do start nearing undercollateralization, we nned someone to liquidate positions
-    // If someone is lamost undercollateralized we will pay u to liquidate them
+    // if we do start nearing undercollateralization, we need someone to liquidate positions
+    // If someone is almost undercollateralized we will pay u to liquidate them
     // eg if someone intial deposited $100 to get $50DSC
     // the deposit value falls to $75 we will ask them to liquidate it since it reached the threshold
     // the Liquidator takes of $75 and burns $50 DSC 
@@ -270,8 +273,8 @@ contract DSCEngine is ReentrancyGuard {
         uint256 amountDSCToBurn,
         address onBehalfOf,
         address DSCFrom
-    ) private moreThanZero(amountDSCToBurn){
-         s_DSCMinted[onBehalfOf] -= amountDSCToBurn;
+    ) private {
+        s_DSCMinted[onBehalfOf] -= amountDSCToBurn;
         bool success = i_DSC.transferFrom(DSCFrom ,address(this), amountDSCToBurn);
         if (!success) {
             revert DSCEngine__TransferFailed();
@@ -426,11 +429,11 @@ contract DSCEngine is ReentrancyGuard {
         return s_CollateralDeposited[user][token];
     }
 
-    function getDSCMint(address token) public view returns (uint256) {
-        if (token == address(0)) {
+    function getDSCMint(address user) public view returns (uint256) {
+        if (user == address(0)) {
             revert DSCEngine__TokenAddressZero();
         }
-        return s_DSCMinted[token];
+        return s_DSCMinted[user];
     }
 
     function getCollateralTokens(uint256 index) public view returns (address) {

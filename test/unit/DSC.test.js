@@ -160,26 +160,90 @@ const { developmentChain } = require("../../helper-hardhat-config");
       it("deposits and mints DSC", async () => {
         const x = ethers.utils.parseEther("10");
         await mockERC20.approve(DSCEngine.address, x);
-        await DSCEngine.depositCollateral(
-          mockERC20.address,
-          ethers.utils.parseEther("10")
-        );
-        const y = await DSCEngine.getUSDValue(
-          mockERC20.address,
-          ethers.utils.parseEther("0.00000001")
-        );
-        const z = await DSCEngine._getAccountCollateralValue(deployer);
-        console.log(z.toString());
-        console.log(y.toString());
         await DSCEngine.depositCollateralAndMintDSC(
           mockERC20.address,
           ethers.utils.parseEther("10"),
           ethers.utils.parseEther("0.00000001")
         );
-        const a = await DSC.totalSupply();
-        console.log(a.toString())
-      })
+      });
+
+      it("Emits an Event", async () => {
+        const x = ethers.utils.parseEther("10");
+        await mockERC20.approve(DSCEngine.address, x);
+        await expect(
+          DSCEngine.depositCollateralAndMintDSC(
+            mockERC20.address,
+            ethers.utils.parseEther("10"),
+            ethers.utils.parseEther("0.00000001")
+          )
+        ).to.emit(DSCEngine, "CollateralDeposited");
+      });
+
+      it("checks  the updated deposited collateral and minted dsc token balance", async () => {
+        const x = ethers.utils.parseEther("10");
+        await mockERC20.approve(DSCEngine.address, x);
+        await DSCEngine.depositCollateralAndMintDSC(
+          mockERC20.address,
+          ethers.utils.parseEther("10"),
+          ethers.utils.parseEther("0.00000001")
+        );
+        const collateral = await DSCEngine.getCollateralDepositedAmount(deployer, mockERC20.address);
+        const DScMinted = await DSCEngine.getDSCMint(deployer);
+        const DSCTokens = await DSC.balanceOf(deployer);
+        assert.equal(collateral.toString(), ethers.utils.parseEther("10"));
+        assert.equal(
+          DScMinted.toString(),
+          ethers.utils.parseEther("0.00000001")
+        );
+        assert.equal(
+          DSCTokens.toString(),
+          ethers.utils.parseEther("0.00000001")
+        );
+      });
+    });
+
+    describe('Tests the Burn function', () => {
+      beforeEach(async () => {
+        const x = ethers.utils.parseEther("10");
+        await mockERC20.approve(DSCEngine.address, x);
+        await DSCEngine.depositCollateralAndMintDSC(
+          mockERC20.address,
+          ethers.utils.parseEther("10"),
+          ethers.utils.parseEther("0.00000001")
+        );
+        await DSC.approve(
+          DSCEngine.address,
+          ethers.utils.parseEther("0.00000001")
+        );
+      });
+      
+      it("It fails if the amount to burn isnt greater than 0", async () => {
+        await expect(
+          DSCEngine.burnDSC(0)
+        ).to.be.revertedWith("DSCEngine__NeedsMoreThanZero");
+      });
+      
+      it("Fails if the DSC Burn amount is greater than the minted DSC", async () => {
+        // Since it has built in underflow protection it is fine 
+        await expect(                             
+          DSCEngine.burnDSC(ethers.utils.parseEther("0.0000001"))
+        ).to.be.revertedWith("panic code 0x11");
+      });
+      
+      it("burns the DSC token fully or either partially", async () => {
+        assert(await                                 
+          DSCEngine.burnDSC(ethers.utils.parseEther("0.000000008"))
+        )
+      });
+
+      it("updates the global variable", async () => {
+        const x = await DSCEngine.getDSCMint(deployer);
+        await DSCEngine.burnDSC(ethers.utils.parseEther("0.000000008"));
+        const y = await DSCEngine.getDSCMint(deployer);
+        assert(x.toString != y.toString());
+      });
     })
+    
     
     describe("checks the deposit in usd", () => {
       it("The value in USD ", async () => {
