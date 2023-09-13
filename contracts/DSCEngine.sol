@@ -283,7 +283,7 @@ contract DSCEngine is ReentrancyGuard {
     }
 
     /**
-     * @dev this is a low level function dont call this untill you check the health Factor 
+     * @dev this is a low level function dont call this until you check the health Factor 
      */
     function _redeemCollateral(
         address tokenCollateralAddress, 

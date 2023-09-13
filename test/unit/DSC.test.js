@@ -55,43 +55,45 @@ const { developmentChain } = require("../../helper-hardhat-config");
 
     describe("checks the account information", () => {
       it("gets the collateral value", async () => {
-        const x = ethers.utils.parseEther("1");
+        const x = ethers.utils.parseEther("10");
         await mockERC20.approve(DSCEngine.address, x);
         await DSCEngine.depositCollateral(mockERC20.address, x);
         const z = await DSCEngine._getAccountCollateralValue(deployer);
-        assert.equal(z, "2000000000000000000000");
+        assert.equal(z.toString(), "20000000000000000000000");
       });
     });
 
-    describe("DepositCollateral Funtion", () => {
+    describe("Deposi Collateral Funtion", () => {
       it("Fails to deposit when deposit amount is 0", async () => {
-        const x = ethers.utils.parseEther("1");
+        const x = ethers.utils.parseEther("10");
         await expect(
           DSCEngine.depositCollateral(mockERC20.address, 0)
         ).to.be.revertedWith("DSCEngine__NeedsMoreThanZero");
       });
       it("Fails when the collateral token is not in allowed list", async () => {
-        const x = ethers.utils.parseEther("1");
+        const x = ethers.utils.parseEther("10");
         await expect(
           DSCEngine.depositCollateral(DSC.address, x)
         ).to.be.revertedWith("DSCEngine__TokenNotAllowed");
       });
       it("Deposits the collaterral", async () => {
-        const x = ethers.utils.parseEther("1");
+        const x = ethers.utils.parseEther("10");
         await mockERC20.approve(DSCEngine.address, x);
         await expect(
           await DSCEngine.depositCollateral(mockERC20.address, x)
         );
       });
+      
       it("Emits an event", async () => {
-        const x = ethers.utils.parseEther("1");
+        const x = ethers.utils.parseEther("10");
         await mockERC20.approve(DSCEngine.address, x);
         await expect(
           await DSCEngine.depositCollateral(mockERC20.address, x)
         ).to.emit(DSCEngine, "CollateralDeposited");
       });
+      
       it("updates the balance of the DSCEngine contract in ERC20 token balance", async () => {
-        const x = ethers.utils.parseEther("1");
+        const x = ethers.utils.parseEther("10");
         await mockERC20.approve(DSCEngine.address, x);
         await DSCEngine.depositCollateral(mockERC20.address, x);
         const y = await mockERC20.balanceOf(DSCEngine.address);
@@ -101,15 +103,17 @@ const { developmentChain } = require("../../helper-hardhat-config");
 
     describe("MintDSC Funtion", () => {
       beforeEach(async () => {
-        const x = ethers.utils.parseEther("1");
+        const x = ethers.utils.parseEther("10");
         await mockERC20.approve(DSCEngine.address, x);
         await DSCEngine.depositCollateral(mockERC20.address, x);
       });
+
       it("should mint only if the tokens to be minted is more than 0", async () => {
         await expect(DSCEngine.mintDSC(0)).to.be.revertedWith(
           "DSCEngine__NeedsMoreThanZero"
         );
       });
+      
       it("Will be reverted when it breaks the health factor", async () => {
         await expect(
           DSCEngine.mintDSC(ethers.utils.parseEther("1.6"))
@@ -127,13 +131,13 @@ const { developmentChain } = require("../../helper-hardhat-config");
           DSCEngine.depositCollateralAndMintDSC(
             mockERC20.address,
             0,
-            ethers.utils.parseEther("1")
+            ethers.utils.parseEther("10")
           )
         ).to.be.revertedWith("DSCEngine__NeedsMoreThanZero");
         await expect(
           DSCEngine.depositCollateralAndMintDSC(
             mockERC20.address,
-            ethers.utils.parseEther("1"),
+            ethers.utils.parseEther("10"),
             0
           )
         ).to.be.revertedWith("DSCEngine__NeedsMoreThanZero");
@@ -145,14 +149,14 @@ const { developmentChain } = require("../../helper-hardhat-config");
           DSCEngine.depositCollateralAndMintDSC(
             "0x0000000000000000000000000000000000000000",
             0,
-            ethers.utils.parseEther("1")
+            ethers.utils.parseEther("10")
           )
         ).to.be.revertedWith("DSCEngine__NeedsMoreThanZero");
         await expect(
           DSCEngine.depositCollateralAndMintDSC(
             "0x0000000000000000000000000000000000000000",
-            ethers.utils.parseEther("1"),
-            ethers.utils.parseEther("1")
+            ethers.utils.parseEther("10"),
+            ethers.utils.parseEther("10")
           )
         ).to.be.revertedWith("DSCEngine__TokenAddressZero");
       });
@@ -225,15 +229,18 @@ const { developmentChain } = require("../../helper-hardhat-config");
       
       it("Fails if the DSC Burn amount is greater than the minted DSC", async () => {
         // Since it has built in underflow protection it is fine 
-        await expect(                             
+        await expect(
           DSCEngine.burnDSC(ethers.utils.parseEther("0.0000001"))
         ).to.be.revertedWith("panic code 0x11");
       });
       
       it("burns the DSC token fully or either partially", async () => {
-        assert(await                                 
-          DSCEngine.burnDSC(ethers.utils.parseEther("0.000000008"))
-        )
+        const x = await DSC.balanceOf(deployer);
+        assert(await
+          DSCEngine.burnDSC(ethers.utils.parseEther("0.000000001"))
+        );
+        const y = await DSC.balanceOf(deployer);
+        assert(x.toString() != y.toString());
       });
 
       it("updates the global variable", async () => {
@@ -242,23 +249,127 @@ const { developmentChain } = require("../../helper-hardhat-config");
         const y = await DSCEngine.getDSCMint(deployer);
         assert(x.toString != y.toString());
       });
-    })
-    
-    
-    describe("checks the deposit in usd", () => {
-      it("The value in USD ", async () => {
-        const x = ethers.utils.parseEther("1");
-        const y = await DSCEngine.getUSDValue(mockERC20BTC.address, x);
-        assert.equal(y.toString(), "30000000000000000000000");
-        const z = await DSCEngine.getUSDValue(mockERC20.address, x);
-        assert.equal(z.toString(), "2000000000000000000000");
+    });
+
+    describe('Redeem Function', () => {
+      beforeEach(async () => {
+        const x = ethers.utils.parseEther("10");
+        await mockERC20.approve(DSCEngine.address, x);
+        await DSCEngine.depositCollateralAndMintDSC(
+          mockERC20.address,
+          ethers.utils.parseEther("10"),
+          ethers.utils.parseEther("0.00000001")
+        );
+        await DSC.approve(
+          DSCEngine.address,
+          ethers.utils.parseEther("0.00000001")
+        );
       });
-      it("checks the total deposited value in usd", async () => {
-        const x = ethers.utils.parseEther("1");
+
+      it("Redeem function fails if the token contract address isn't correct", async () => {
+        await expect(
+          DSCEngine.redeemCollateral(
+            "0x0000000000000000000000000000000000000000",
+            ethers.utils.parseEther("1")
+          )
+        ).to.be.revertedWith("DSCEngine__TokenAddressZero");
+      });
+
+      it("Redeem function fails if the Redeeming amount is 0", async () => {
+        await expect(
+          DSCEngine.redeemCollateral(
+            "0x0000000000000000000000000000000000000000",
+            0
+          )
+        ).to.be.revertedWith("DSCEngine__NeedsMoreThanZero");
+      });
+
+      it("fails if the Redeeming amount is effecting the user Health factor to reach 1", async () => {
+        // since the amount borrowed is w.r.t to deposited 10 ether and since the whole amount
+        // was given we cant withdraw more than 50% of the deposit
+        await expect(
+          DSCEngine.redeemCollateral(
+            mockERC20.address,
+            ethers.utils.parseEther("6")
+          )
+        ).to.be.revertedWith("DSCEngine__BreaksHealthFactor");
+      });
+
+      it("Redeem possible only if the health factor is not Compromised", async () => {
+        const x = await DSCEngine.getHealthFactor(deployer);
+        await expect(
+          DSCEngine.redeemCollateral(
+            mockERC20.address,
+            ethers.utils.parseEther("3")
+          ));
+        const y = await DSCEngine.getHealthFactor(deployer);
+        assert(x.toString() != y.toString());
+      });
+
+      it("Updates the State variable", async () => {
+        const x = await DSCEngine.getCollateralDepositedAmount(deployer, mockERC20.address);
+        await expect(
+          DSCEngine.redeemCollateral(
+            mockERC20.address,
+            ethers.utils.parseEther("3")
+          )
+        );
+        const y = await DSCEngine.getCollateralDepositedAmount(
+          deployer,
+          mockERC20.address
+        );
+        assert(x.toString() != y.toString());
+      });
+    
+      it("Emits an Event", async () => {
+        await expect(
+          DSCEngine.redeemCollateral(
+            mockERC20.address,
+            ethers.utils.parseEther("3")
+          )
+        ).to.emit(DSCEngine, "CollateralRedeemed");
+      });
+
+      it("checks if the token tranfer is successful", async () => {
+        const x = await mockERC20.balanceOf(DSCEngine.address);
+        await DSCEngine.redeemCollateral(
+          mockERC20.address,
+          ethers.utils.parseEther("3")
+        );
+        const y = await mockERC20.balanceOf(DSCEngine.address);
+        assert(x.toString() != y.toString());
+      })
+    })
+
+    
+    
+    
+    describe("checks Values in USD", () => {
+      it("The value in USD ", async () => {
+        const x = ethers.utils.parseEther("10");
+        const y = await DSCEngine.getUSDValue(mockERC20BTC.address, x);
+        assert.equal(y.toString(), "300000000000000000000000");
+        const z = await DSCEngine.getUSDValue(mockERC20.address, x);
+        assert.equal(z.toString(), "20000000000000000000000");
+      });
+      
+      it("checks the total deposited value in USD", async () => {
+        const x = ethers.utils.parseEther("10");
         await mockERC20.approve(DSCEngine.address, x);
         await DSCEngine.depositCollateral(mockERC20.address, x);
         const y = await DSCEngine._getAccountCollateralValue(deployer);
-        assert.equal(y, "2000000000000000000000");
+        assert.equal(y.toString(), "20000000000000000000000");
+      });
+
+      it("checks The collateral value in USD and the minted DSc value in DSC", async () => {
+        const x = ethers.utils.parseEther("10");
+        await mockERC20.approve(DSCEngine.address, x);
+        await DSCEngine.depositCollateral(mockERC20.address, x);
+        const y = await DSCEngine._getAccountCollateralValue(deployer);
+        console.log(y.toString());
+        await DSCEngine.mintDSC(ethers.utils.parseEther("0.000000011"))
+        const z = await DSCEngine.getDSCMint(deployer);
+        console.log(z.toString());
       })
     });
 
