@@ -15,7 +15,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   if (developmentChain.includes(network.name)) {
     log("Local network detected!!!!");
     log("Deploying mocks ---> ");
-    await deploy("MockV3Aggregator", {
+    await deploy("MockV3Aggregator1", {
       from: deployer,
       // in this contract we can choose our inital price since it is a mock
       args: [decimals, initialAnswer], // --> constructor args

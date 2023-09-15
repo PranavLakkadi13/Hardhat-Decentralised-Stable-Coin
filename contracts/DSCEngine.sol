@@ -124,10 +124,7 @@ contract DSCEngine is ReentrancyGuard {
      * @notice This function will deposit collateral and mint DSC in 1 function 
      */
     function depositCollateralAndMintDSC(address tokenCollateralAddress, uint256 amountCollateral,uint256 amountDSCtoMint) 
-    external moreThanZero(amountCollateral) moreThanZero(amountDSCtoMint){
-        if (tokenCollateralAddress == address(0)) {
-           revert DSCEngine__TokenAddressZero();
-        }
+    external {
         depositCollateral(tokenCollateralAddress, amountCollateral);
         mintDSC(amountDSCtoMint);
     }
@@ -176,12 +173,9 @@ contract DSCEngine is ReentrancyGuard {
      * @param amountCollateral The amount of the collateral user wants to redeem 
      */
     function redeemCollateral(address tokenCollateralAddress, uint256 amountCollateral ) 
-    public moreThanZero(amountCollateral) nonReentrant {
+    public moreThanZero(amountCollateral) isAllowedToken(tokenCollateralAddress) nonReentrant {
         // in order to Redeem collateral:
         // 1) Health factor must be more than 1, after the collateral has been pulled  
-        if (tokenCollateralAddress == address(0)) {
-            revert DSCEngine__TokenAddressZero();
-        }
         _redeemCollateral(tokenCollateralAddress, amountCollateral, msg.sender, msg.sender);
 
         _RevertIfHealthFactorIsBroken(msg.sender);
@@ -192,7 +186,7 @@ contract DSCEngine is ReentrancyGuard {
      * @param amountDSCtoMint The amount of Decentralised stable coin to mint 
      * @notice They must always have more collateral value than Minimum threshold 
      */
-    function mintDSC(uint256 amountDSCtoMint) moreThanZero(amountDSCtoMint) nonReentrant public {
+    function mintDSC(uint256 amountDSCtoMint) public moreThanZero(amountDSCtoMint) nonReentrant{
         unchecked {
             s_DSCMinted[msg.sender] += amountDSCtoMint;
         }
@@ -207,7 +201,7 @@ contract DSCEngine is ReentrancyGuard {
      * This function is to burn the minted token 
      * @param amount The amount DSC to burn 
      */
-    function burnDSC(uint256 amount) public moreThanZero(amount){
+    function burnDSC(uint256 amount) public moreThanZero(amount) {
         _burnDSC(amount, msg.sender, msg.sender);
         
         // Not sure if the below statement is needed 
@@ -234,9 +228,9 @@ contract DSCEngine is ReentrancyGuard {
      * Follows CEI 
      */
     function liquidate(address collateral, address user, uint256 debtToCover) 
-    external moreThanZero(debtToCover) nonReentrant {
+    external moreThanZero(debtToCover) isAllowedToken(collateral) nonReentrant {
         // needs to check the health Factor
-        if (collateral == address(0) || user == address(0)) {
+        if (user == address(0)) {
             revert DSCEngine__TokenAddressZero();
         }
 
@@ -244,6 +238,7 @@ contract DSCEngine is ReentrancyGuard {
         if (startingHealthFactor >= MIN_HEALTH_FACTOR ) {
             revert DSCEngine__HealthFactorOk();
         }
+        
         uint256 tokenAmountFromDebtcovered = getTokenAmountinUSD(collateral, debtToCover);
 
         uint256 bonusCollateral = (tokenAmountFromDebtcovered/ LIQUIDATION_BONUS)/LIQUIDATION_PRECISION ;
@@ -323,6 +318,9 @@ contract DSCEngine is ReentrancyGuard {
         // total DSC minted 
         // total collateral value
         (uint256 totalDSCMinted, uint256 collateralValueinUSD) = _getAccountInformation(user);
+        if (totalDSCMinted == 0 ) {
+            return 2 * PRECISION;
+        }
         uint256 collateralAdjustedThreshold = (collateralValueinUSD/totalDSCMinted)/LIQUIDATION_PRECISION;
         return ((collateralAdjustedThreshold * PRECISION) / totalDSCMinted);
     }

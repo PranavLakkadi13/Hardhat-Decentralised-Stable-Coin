@@ -10,7 +10,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   const { deploy, log } = deployments;
   const chainId = network.config.chainId;
 
-  const mockV3Aggregator = await deployments.get("MockV3Aggregator");
+  const mockV3Aggregator = await deployments.get("MockV3Aggregator1");
   const mockERC20 = await deployments.get("ETHToken");
   const mockERC202 = await deployments.get("BTCToken");
   const DSC = await deployments.get("DecentralisedStableCoin");
