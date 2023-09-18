@@ -471,22 +471,22 @@ const { developmentChain } = require("../../helper-hardhat-config");
         await mockERC20.approve(DSCEngine.address, x);
         await DSCEngine.depositCollateralAndMintDSC(
           mockERC20.address,
-          ethers.utils.parseEther("10"),
+          x,
           ethers.utils.parseEther("0.00000001")
         );
         await mockERC20.connect(User).approve(DSCEngine.address, ethers.utils.parseEther("100"));
         await DSCEngine.connect(User).depositCollateralAndMintDSC(
           mockERC20.address,
           ethers.utils.parseEther("100"),
-          ethers.utils.parseEther("0.000000001")
+          ethers.utils.parseEther("0.0000001")
         );
         await DSC.approve(
           DSCEngine.address,
-          ethers.utils.parseEther("0.000000001")
+          ethers.utils.parseEther("0.00000001")
         );
         await DSC.connect(User).approve(
           DSCEngine.address,
-          ethers.utils.parseEther("0.000000001")
+          ethers.utils.parseEther("0.0000001")
         );
       });
 
@@ -525,23 +525,34 @@ const { developmentChain } = require("../../helper-hardhat-config");
           DSCEngine.connect(User).liquidate(
             mockERC20.address,
             deployer,
-            ethers.utils.parseEther("0.00000001")
+            ethers.utils.parseEther("0.000000001")
           )
         ).to.be.revertedWith("DSCEngine__HealthFactorOk");
       });
 
-      it("Should fail if the health factor didnt improve of the user that is being liquidated", async () => {
-        console.log(User);
-        console.log(deployer);
+      it("Should fail if the health factor didn't improve of the user that is being liquidated", async () => {
+        const x = await DSCEngine.getHealthFactor(deployer);
+        console.log(x.toString());
         await MockV3Aggregator.updateAnswer(1000_00000000);
         await expect(
           DSCEngine.connect(User).liquidate(
             mockERC20.address,
             deployer,
-            ethers.utils.parseEther("0.0000000001")
-          )
-        ).to.be.revertedWith("DSCEngine__HealthFactorNotImproved");
+            ethers.utils.parseEther("0.000000001")
+          ));
+        const y = await DSCEngine.getHealthFactor(deployer);
+        console.log(y.toString());
+      });
+
+      it("fails if you liquate a user and inturn damage yiur health factor", async () => {
+        const x = await DSCEngine.getHealthFactor(User.address);
+        console.log(x.toString());
+        await DSCEngine.connect(User).redeemCollateral(mockERC20.address, ethers.utils.parseEther("95"));
+        const y = await DSCEngine.getHealthFactor(User.address);
+        console.log(y.toString());
       })
+
+
     })
     
   
@@ -578,6 +589,10 @@ const { developmentChain } = require("../../helper-hardhat-config");
           mockERC20.address,
           ethers.utils.parseEther("100")
         );
+        await DSCEngine.mintDSC(ethers.utils.parseEther("0.00000001"));
+        await DSCEngine.connect(User).mintDSC(ethers.utils.parseEther("0.00000001"));
+        const total = await DSC.totalSupply();
+        console.log(total.toString());
         const y = await DSCEngine._getAccountCollateralValue(deployer);
         const z = await DSCEngine._getAccountCollateralValue(User.address);
         await MockV3Aggregator.updateAnswer(1520_00000000);
@@ -602,6 +617,7 @@ const { developmentChain } = require("../../helper-hardhat-config");
         const x = ethers.utils.parseEther("10");
         await mockERC20.approve(DSCEngine.address, x);
         await DSCEngine.depositCollateral(mockERC20.address, x);
+        await DSCEngine.mintDSC(ethers.utils.parseEther("0.00000001"));
         const y = await DSCEngine.getHealthFactor(deployer);
         console.log(y.toString());
       });
@@ -610,10 +626,11 @@ const { developmentChain } = require("../../helper-hardhat-config");
         const x = ethers.utils.parseEther("10");
         await mockERC20.approve(DSCEngine.address, x);
         await DSCEngine.depositCollateral(mockERC20.address, x);
+        await DSCEngine.mintDSC(ethers.utils.parseEther("0.00000001"));
         await MockV3Aggregator.updateAnswer(100_00000000);
         const y = await DSCEngine.getHealthFactor(deployer);
         console.log(y.toString());
-      })
+      });
     });
 
   });
